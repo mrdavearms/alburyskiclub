@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Knowledge Base | Albury Ski Club</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        .faq-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .faq-card.open .faq-answer {
+            max-height: 1000px;
+        }
+
+        .faq-card.open .chevron {
+            transform: rotate(180deg);
+        }
+
+        .category-chip.active {
+            background-color: #dc2626;
+            color: white;
+            border-color: #dc2626;
+        }
+
+        .responsibility-banner {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 200px;
+            margin: 1rem 0;
+        }
+
+        .ai-glow {
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.1);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+        }
+
+        .loader {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #dc2626;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+    <!-- Header & Brand -->
+    <header class="bg-white border-b border-slate-200 pt-12 pb-8 px-4">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="inline-block px-3 py-1 bg-red-50 text-red-700 text-xs font-bold rounded-full uppercase tracking-widest mb-4">Secretary's Office</div>
+            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight mb-4">Member Knowledge Base</h1>
+            <p class="text-slate-600 text-lg mb-8 max-w-2xl mx-auto">Access club policies, fees, and procedures. Use the AI Assistant for situational guidance.</p>
+        </div>
+    </header>
+
+    <!-- Responsibility Banner -->
+    <section class="responsibility-banner text-white py-4 px-4 sticky top-0 z-50 shadow-lg">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">⚠️</span>
+                <p class="text-sm font-medium leading-tight">
+                    <span class="font-bold text-red-400 uppercase">Member Responsibility:</span> 
+                    It is your duty to follow club protocols. The Committee is not responsible for cross-checking your compliance.
+                </p>
+            </div>
+            <div class="text-xs opacity-75 hidden md:block">Updated for 2025/2026 Season</div>
+        </div>
+    </section>
+
+    <!-- ✨ AI Assistant Hub -->
+    <section class="max-w-4xl mx-auto px-4 mt-8">
+        <div class="bg-white rounded-3xl p-6 ai-glow shadow-sm border border-red-100">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="text-xl">✨</span>
+                <h3 class="font-bold text-slate-800">AI Member Assistant</h3>
+                <span class="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-bold uppercase">Experimental</span>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">Ask about specific scenarios, e.g., "What are the rules for my 16-year-old friend staying in winter?" or "How much is the 18-23 fee?"</p>
+            <div class="flex flex-col gap-3">
+                <div class="relative">
+                    <textarea id="aiQuery" rows="2" placeholder="Ask a complex question..." 
+                              class="w-full p-4 pr-12 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all text-sm resize-none"></textarea>
+                    <button onclick="askAI()" id="aiBtn" class="absolute right-3 bottom-3 p-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors">
+                        <span id="aiBtnText">✨ Ask</span>
+                    </button>
+                </div>
+                <div id="aiResponse" class="hidden animate-fade p-5 bg-slate-50 rounded-2xl border border-slate-200 text-sm text-slate-700 leading-relaxed">
+                    <!-- AI response injected here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search Bar -->
+    <div class="max-w-4xl mx-auto px-4 mt-8">
+        <div class="relative">
+            <input type="text" id="faqSearch" onkeyup="filterFAQ()" placeholder="Quick filter topics (e.g. 'lockers', 'refund')..." 
+                   class="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 shadow-sm focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none transition-all text-slate-700">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl">🔍</span>
+        </div>
+    </div>
+
+    <!-- Category Filters -->
+    <nav class="bg-white border-b border-slate-200 py-4 px-4 overflow-x-auto no-scrollbar mt-6">
+        <div class="max-w-6xl mx-auto flex gap-2 md:justify-center whitespace-nowrap">
+            <button onclick="filterCategory('all')" class="category-chip active px-4 py-2 rounded-full border border-slate-200 text-sm font-semibold transition-all hover:border-red-500" data-category="all">All Topics</button>
+            <button onclick="filterCategory('fees')" class="category-chip px-4 py-2 rounded-full border border-slate-200 text-sm font-semibold transition-all hover:border-red-500" data-category="fees">Fees & Joining</button>
+            <button onclick="filterCategory('bookings')" class="category-chip px-4 py-2 rounded-full border border-slate-200 text-sm font-semibold transition-all hover:border-red-500" data-category="bookings">Bookings</button>
+            <button onclick="filterCategory('refunds')" class="category-chip px-4 py-2 rounded-full border border-slate-200 text-sm font-semibold transition-all hover:border-red-500" data-category="refunds">Refunds</button>
+            <button onclick="filterCategory('rules')" class="category-chip px-4 py-2 rounded-full border border-slate-200 text-sm font-semibold transition-all hover:border-red-500" data-category="rules">Rules & Eligibility</button>
+            <button onclick="filterCategory('status')" class="category-chip px-4 py-2 rounded-full border border-slate-200 text-sm font-semibold transition-all hover:border-red-500" data-category="status">Membership Status</button>
+            <button onclick="filterCategory('facilities')" class="category-chip px-4 py-2 rounded-full border border-slate-200 text-sm font-semibold transition-all hover:border-red-500" data-category="facilities">Lodge Facilities</button>
+        </div>
+    </nav>
+
+    <!-- FAQ Feed -->
+    <main class="max-w-4xl mx-auto px-4 py-12">
+        
+        <!-- FEE SECTION -->
+        <div class="category-section mb-12" id="section-fees">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white text-sm font-bold">A</span>
+                    Membership Fees & Joining
+                </h2>
+                <p class="text-sm text-slate-500 mt-2">Annual subscription cycles and joining pathways.</p>
+            </div>
+            <div class="space-y-4" id="fees-list"></div>
+        </div>
+
+        <!-- BOOKING SECTION -->
+        <div class="category-section mb-12" id="section-bookings">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white text-sm font-bold">B</span>
+                    Booking Procedures
+                </h2>
+                <p class="text-sm text-slate-500 mt-2">Opening dates and member-led booking logic.</p>
+            </div>
+            <div class="space-y-4" id="bookings-list"></div>
+        </div>
+
+        <!-- REFUND SECTION -->
+        <div class="category-section mb-12" id="section-refunds">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white text-sm font-bold">C</span>
+                    Cancellations & Refunds
+                </h2>
+                <p class="text-sm text-slate-500 mt-2">Refund tiers and medical exemptions.</p>
+            </div>
+            <div class="space-y-4" id="refunds-list"></div>
+        </div>
+
+        <!-- RULES SECTION -->
+        <div class="category-section mb-12" id="section-rules">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white text-sm font-bold">D</span>
+                    Rules & Eligibility
+                </h2>
+                <p class="text-sm text-slate-500 mt-2">Prerequisites for full membership standing.</p>
+            </div>
+            <div class="space-y-4" id="rules-list"></div>
+        </div>
+
+        <!-- STATUS SECTION -->
+        <div class="category-section mb-12" id="section-status">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white text-sm font-bold">E</span>
+                    Membership Status
+                </h2>
+                <p class="text-sm text-slate-500 mt-2">Resignation and unfinancial standing details.</p>
+            </div>
+            <div class="space-y-4" id="status-list"></div>
+        </div>
+
+        <!-- FACILITIES SECTION -->
+        <div class="category-section mb-12" id="section-facilities">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white text-sm font-bold">F</span>
+                    Lodge Facilities
+                </h2>
+                <p class="text-sm text-slate-500 mt-2">Storage, locker rules, and communal expectations.</p>
+            </div>
+            <div class="space-y-4" id="facilities-list"></div>
+        </div>
+
+        <!-- No Results -->
+        <div id="noResults" class="hidden text-center py-20 bg-white rounded-3xl border border-slate-100">
+            <p class="text-slate-400 italic">No matching questions found. Try the ✨ AI Assistant for complex queries.</p>
+        </div>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-12 px-4">
+        <div class="max-w-4xl mx-auto text-center">
+            <p class="text-sm mb-4">Albury Ski Club Inc. | Established 1935</p>
+            <p class="text-[10px] opacity-50">Experimental AI tool. Please verify results against official PDFs.</p>
+        </div>
+    </footer>
+
+    <script>
+        const apiKey = ""; // Provided at runtime
+        const faqData = [
+            { id: 1, category: 'fees', q: "When are annual fees reviewed and set?", a: "Fees are effective for the financial year running from 1 October to 30 September. The Committee reviews the following year's fees each September for publication and implementation at the start of October each year.", source: "Fees for Booking and Joining 2025 & 2026" },
+            { id: 2, category: 'fees', q: "When are my annual subscription fees due?", a: "Subscriptions are due on 1 December each year. However, members may renew their subscriptions online starting from 1 October.", source: "ASC Booking Guidelines 2026" },
+            { id: 3, category: 'fees', q: "Is there a different rate for young adults?", a: "Yes. Those aged 18 to 23 are charged $255.00, which is 60% of the full adult subscription.", source: "Fees for Booking and Joining 2025 & 2026", hasChart: true },
+            { id: 4, category: 'fees', q: "Should I cancel or just become unfinancial?", a: "Becoming unfinancial is an option to keep the door open. You lose booking and voting authority. If you stay as a guest, you pay full associate rates. Reinstatement requires paying the lesser of outstanding fees or the adult joining fee ($3,750).", source: "Reinstate Unfinancial Members Guidelines" },
+            
+            { id: 5, category: 'bookings', q: "When do winter bookings officially open?", a: "1 October for financial members and 1 February for associates. Early bookings via loops will be cancelled.", source: "Winter Booking Protocols" },
+            { id: 6, category: 'bookings', q: "What is the preferred payment method?", a: "Online via website using Mastercard or Visa. Payment must be in full. AMEX is not accepted.", source: "ASC Booking Guidelines 2026" },
+            { id: 7, category: 'bookings', q: "Can my junior child make a booking?", a: "No. Only Adult Financial Members can book or sponsor associates.", source: "ASC Booking Guidelines 2026" },
+            { id: 8, category: 'bookings', q: "Are there minimum unit occupancies?", a: "Yes. Falls Creek units require min 2 adults per night in Winter.", source: "ASC Booking Guidelines 2026" },
+
+            { id: 11, category: 'refunds', q: "How do I request a refund?", a: "In writing via email to the relevant Booking Officer.", source: "Guidelines for Cancellations" },
+            { id: 12, category: 'refunds', q: "What are the winter refund tiers?", a: "28+ days: 100%. 10-28 days: 50%. <10 days: 0-50% (Committee decision).", source: "Guidelines for Cancellations", hasRefundVisual: true },
+            { id: 13, category: 'refunds', q: "What if I cancel for medical reasons?", a: "100% refund with a medical certificate or Stat Dec. Booking Officer decides, except for <10 day windows.", source: "Guidelines for Cancellations" },
+
+            { id: 16, category: 'rules', q: "What is the 80km Residential Condition?", a: "Members must reside within 80km of Albury Post Office. Exceptions for legacy members and immediate family.", source: "Constitution" },
+            { id: 17, category: 'rules', q: "What are the bed night requirements?", a: "Adults must stay 7 nights in Winter at Falls Creek (3 consecutive) before applying.", source: "Prospective Member Guidelines" },
+
+            { id: 24, category: 'facilities', q: "What are the locker rules?", a: "Falls Creek items must be in lockers. Skis in storage room. Associates cannot store gear. Vacate by 1:00 PM.", source: "Code of Conduct" }
+        ];
+
+        // --- AI Logic ---
+        async function askAI() {
+            const query = document.getElementById('aiQuery').value;
+            const resBox = document.getElementById('aiResponse');
+            const btn = document.getElementById('aiBtn');
+            const btnText = document.getElementById('aiBtnText');
+
+            if (!query.trim()) return;
+
+            resBox.classList.remove('hidden');
+            resBox.innerHTML = '<div class="flex items-center gap-2"><div class="loader"></div><span>Consulting club policies...</span></div>';
+            btn.disabled = true;
+
+            const systemPrompt = `You are the Albury Ski Club Digital Secretary. Answer based on these rules:
+            - Winter Bookings: Open Oct 1 (Members), Feb 1 (Associates).
+            - Fees: Adult $425, 18-23 $255, Junior $127.
+            - Refunds: 100% (28+ days), 50% (10-28 days), Discretion (<10 days).
+            - Medical: 100% with certificate.
+            - Units: Min 2 adults in winter.
+            - Residential: 80km from Albury PO.
+            - Membership: 7 nights stay (3 consecutive) + 1 working bee required.
+            Always emphasize Member Responsibility: Members must follow protocols; the committee does not cross-check. Use a professional, helpful tone. Highlight that this is an AI interpretation and to check PDFs.`;
+
+            try {
+                const response = await callGemini(query, systemPrompt);
+                resBox.innerHTML = `<strong>✨ AI Suggestion:</strong><br>${response}<br><br><span class="text-[10px] uppercase font-bold text-slate-400 italic">Always verify this against official documents in the section below.</span>`;
+            } catch (err) {
+                resBox.innerHTML = `<span class="text-red-600">The assistant is currently unavailable. Please try again or browse the manual FAQs below.</span>`;
+            } finally {
+                btn.disabled = false;
+                btnText.innerText = "✨ Ask";
+            }
+        }
+
+        async function callGemini(userQuery, systemPrompt, retries = 5, delay = 1000) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    const result = await res.json();
+                    return result.candidates?.[0]?.content?.parts?.[0]?.text || "No response received.";
+                } catch (e) {
+                    if (i === retries - 1) throw e;
+                    await new Promise(r => setTimeout(r, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        // --- Render FAQ ---
+        function renderFAQ(data) {
+            const containers = {
+                fees: document.getElementById('fees-list'),
+                bookings: document.getElementById('bookings-list'),
+                refunds: document.getElementById('refunds-list'),
+                rules: document.getElementById('rules-list'),
+                status: document.getElementById('status-list'),
+                facilities: document.getElementById('facilities-list')
+            };
+
+            Object.values(containers).forEach(c => c.innerHTML = '');
+
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'faq-card bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden';
+                
+                let extraContent = '';
+                if(item.hasChart) extraContent = `<div class="chart-container"><canvas id="chart-${item.id}"></canvas></div>`;
+                if(item.hasRefundVisual) extraContent = `
+                    <div class="mt-6 space-y-3 max-w-md">
+                        <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex">
+                            <div class="h-full bg-green-500 w-[50%] border-r border-white"></div>
+                            <div class="h-full bg-yellow-400 w-[30%] border-r border-white"></div>
+                            <div class="h-full bg-red-400 w-[20%]"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-500 font-bold"><span>28+ Days (100%)</span><span>10-28 Days (50%)</span><span><10 Days</span></div>
+                    </div>`;
+
+                card.innerHTML = `
+                    <button onclick="toggleCard(this)" class="w-full text-left px-6 py-5 flex justify-between items-center group">
+                        <span class="font-bold text-slate-900 group-hover:text-red-600 transition-colors">${item.q}</span>
+                        <span class="chevron text-slate-300 group-hover:text-red-600 transition-transform text-xl">▾</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="px-6 pb-6 pt-2 border-t border-slate-50">
+                            <div class="text-slate-600 leading-relaxed text-sm">${item.a}</div>
+                            ${extraContent}
+                            <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                                <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Source: ${item.source}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                if(containers[item.category]) containers[item.category].appendChild(card);
+                
+                if(item.hasChart) {
+                    setTimeout(() => initFeeChart(`chart-${item.id}`), 100);
+                }
+            });
+
+            Object.keys(containers).forEach(cat => {
+                const section = document.getElementById(`section-${cat}`);
+                if (containers[cat] && containers[cat].children.length === 0) section?.classList.add('hidden');
+                else section?.classList.remove('hidden');
+            });
+        }
+
+        function toggleCard(btn) {
+            const card = btn.closest('.faq-card');
+            card.classList.toggle('open');
+        }
+
+        function filterCategory(cat) {
+            document.querySelectorAll('.category-chip').forEach(chip => {
+                chip.classList.remove('active');
+                if(chip.getAttribute('data-category') === cat) chip.classList.add('active');
+            });
+            const filtered = cat === 'all' ? faqData : faqData.filter(i => i.category === cat);
+            renderFAQ(filtered);
+        }
+
+        function filterFAQ() {
+            const term = document.getElementById('faqSearch').value.toLowerCase();
+            const filtered = faqData.filter(item => 
+                item.q.toLowerCase().includes(term) || item.a.toLowerCase().includes(term)
+            );
+            renderFAQ(filtered);
+            document.getElementById('noResults').classList.toggle('hidden', filtered.length > 0);
+        }
+
+        function initFeeChart(canvasId) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Adult', 'Young Adult', 'Junior'],
+                    datasets: [{
+                        label: 'Annual Sub ($)',
+                        data: [425, 255, 127],
+                        backgroundColor: '#dc2626',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { grid: { display: false } }, y: { grid: { display: false } } }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => renderFAQ(faqData));
+    </script>
+</body>
+</html>
