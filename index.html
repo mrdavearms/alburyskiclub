@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frequently Asked Questions | Albury Ski Club</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Policy Data -->
+    <script src="policies.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .faq-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .faq-answer {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.3s ease-out, padding 0.3s ease;
+            overflow: hidden;
+        }
+
+        .faq-item.open {
+            background-color: #ffffff;
+            border-color: #dc2626;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        .faq-item.open .faq-answer {
+            grid-template-rows: 1fr;
+            padding-top: 1rem;
+        }
+
+        .faq-item.open .chevron {
+            transform: rotate(180deg);
+            color: #dc2626;
+        }
+
+        .category-tab.active {
+            color: #dc2626;
+            background-color: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            height: 180px;
+            margin: 1.5rem 0;
+        }
+
+        /* Alpine Decor */
+        .alpine-line {
+            height: 2px;
+            background: linear-gradient(90deg, #dc2626 0%, transparent 100%);
+            width: 60px;
+        }
+
+        .section-marker {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-entry { animation: fadeIn 0.6s ease-out forwards; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-slate-900 selection:bg-red-100 selection:text-red-900">
+
+    <!-- Header Section -->
+    <header class="pt-16 pb-16 px-6 bg-white border-b border-slate-100">
+        <div class="max-w-4xl mx-auto text-center">
+            <!-- Club Logo Centred at Top -->
+            <div class="flex justify-center mb-8">
+                <img src="ASC Logo.PNG" alt="Albury Ski Club Logo" class="h-32 md:h-40 w-auto drop-shadow-sm">
+            </div>
+            
+            <h1 class="text-5xl font-extrabold tracking-tight text-slate-900 mb-4">Frequently Asked Questions</h1>
+            <h2 class="text-2xl font-medium text-slate-500 mb-8">Albury Ski Club Member Support</h2>
+            
+            <div class="flex items-center justify-center gap-4 flex-wrap">
+                <a href="https://alburyskiclub.au" target="_blank" class="text-xs font-bold uppercase tracking-widest text-red-600 hover:underline">alburyskiclub.au</a>
+                <div class="w-1 h-1 bg-slate-300 rounded-full"></div>
+                <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Effective February 2026</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 glass-nav py-3 px-4 shadow-sm">
+        <div class="max-w-5xl mx-auto flex items-center gap-2 overflow-x-auto no-scrollbar whitespace-nowrap justify-start md:justify-center">
+            <button onclick="scrollToSection('fees')" class="category-tab px-4 py-2 rounded-xl text-sm font-bold text-slate-500 border border-transparent hover:bg-slate-50 transition-all">Fees & Joining</button>
+            <button onclick="scrollToSection('bookings')" class="category-tab px-4 py-2 rounded-xl text-sm font-bold text-slate-500 border border-transparent hover:bg-slate-50 transition-all">Bookings</button>
+            <button onclick="scrollToSection('refunds')" class="category-tab px-4 py-2 rounded-xl text-sm font-bold text-slate-500 border border-transparent hover:bg-slate-50 transition-all">Cancellations</button>
+            <button onclick="scrollToSection('rules')" class="category-tab px-4 py-2 rounded-xl text-sm font-bold text-slate-500 border border-transparent hover:bg-slate-50 transition-all">Rules</button>
+            <button onclick="scrollToSection('status')" class="category-tab px-4 py-2 rounded-xl text-sm font-bold text-slate-500 border border-transparent hover:bg-slate-50 transition-all">Status</button>
+            <button onclick="scrollToSection('facilities')" class="category-tab px-4 py-2 rounded-xl text-sm font-bold text-slate-500 border border-transparent hover:bg-slate-50 transition-all">Facilities</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-6 py-12">
+
+        <!-- CHAPTER 0: AI POLICY ASSISTANT -->
+        <section id="section-ai" class="mb-24 animate-entry">
+            <div class="bg-white rounded-[2.5rem] p-1 border border-slate-200 shadow-2xl relative overflow-hidden">
+                <div class="p-8 md:p-12">
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="w-12 h-12 bg-red-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg shadow-red-200">🤖</div>
+                        <div>
+                            <h3 class="text-2xl font-black text-slate-900 tracking-tight">AI Policy Assistant</h3>
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Knowledge Base Online</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="ai-chat-container" class="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-4 no-scrollbar custom-chat-gradient rounded-3xl p-6 min-h-[100px] border border-slate-50">
+                        <div class="bg-slate-50 self-start px-5 py-4 rounded-2xl rounded-tl-none text-slate-600 text-sm max-w-[85%] leading-relaxed shadow-sm">
+                            Welcome! I've been trained on the club's official policies. How can I help you today?
+                        </div>
+                    </div>
+
+                    <div class="relative group">
+                        <input type="text" id="ai-input" placeholder="Ask about refunds, memberships, or lodge rules..." 
+                            class="w-full bg-slate-100 border-none rounded-2xl px-6 py-5 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-red-600 focus:bg-white transition-all outline-none pr-32 font-medium shadow-inner">
+                        <button onclick="askAI()" id="ai-submit"
+                            class="absolute right-2 top-2 bottom-2 bg-slate-900 text-white px-6 rounded-xl font-bold text-sm hover:bg-red-600 hover:scale-[1.02] active:scale-95 transition-all shadow-lg flex items-center gap-2">
+                            <span>Ask</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Citations area -->
+                    <div id="ai-citations" class="mt-4 flex flex-wrap gap-2 hidden">
+                        <span class="text-[10px] font-black uppercase text-slate-300 w-full mb-1">Citing Sources:</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Member Responsibility Banner -->
+        <div class="bg-slate-900 rounded-3xl p-8 mb-20 relative overflow-hidden shadow-xl animate-entry">
+            <div class="relative z-10">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="text-3xl">⚠️</span>
+                    <h3 class="text-lg font-bold text-white uppercase tracking-wider">Member Responsibility Notice</h3>
+                </div>
+                <p class="text-slate-300 leading-relaxed text-lg">
+                    It is always the <strong class="text-white">member's responsibility</strong> to follow the policies and procedures of the club. This guide is provided as an interactive tool to assist with general navigation and common inquiries. Always refer to the official documentation on our website for formal compliance.
+                </p>
+            </div>
+            <!-- Decorative background element -->
+            <div class="absolute -right-10 -bottom-10 text-white/5 font-black text-9xl select-none">CLUB</div>
+        </div>
+
+        <div class="space-y-24">
+            <!-- CHAPTER 1: FEES -->
+            <section id="section-fees" class="animate-entry">
+                <div class="flex gap-8 items-start mb-12">
+                    <div class="hidden md:block section-marker text-[10px] font-black uppercase tracking-[0.5em] text-slate-300 pt-2">Chapter One</div>
+                    <div>
+                        <div class="alpine-line mb-4"></div>
+                        <h3 class="text-3xl font-extrabold text-slate-900 mb-4">Membership Fees & Joining</h3>
+                        <p class="text-slate-500 leading-relaxed max-w-2xl">A comprehensive guide to the club's financial timelines and subscription structures. Members are responsible for ensuring fees are paid by the December 1st deadline to maintain financial standing.</p>
+                    </div>
+                </div>
+                <div class="space-y-4" id="fees-list"></div>
+            </section>
+
+            <!-- CHAPTER 2: BOOKINGS -->
+            <section id="section-bookings" class="animate-entry">
+                <div class="flex gap-8 items-start mb-12">
+                    <div class="hidden md:block section-marker text-[10px] font-black uppercase tracking-[0.5em] text-slate-300 pt-2">Chapter Two</div>
+                    <div>
+                        <div class="alpine-line mb-4"></div>
+                        <h3 class="text-3xl font-extrabold text-slate-900 mb-4">Booking Procedures</h3>
+                        <p class="text-slate-500 leading-relaxed max-w-2xl">The protocols for staying at Falls Creek and Thredbo. Note that booking officers facilitate occupancy but it is the member's sole responsibility to adhere to season start dates and occupancy minimums.</p>
+                    </div>
+                </div>
+                <div class="space-y-4" id="bookings-list"></div>
+            </section>
+
+            <!-- CHAPTER 3: REFUNDS -->
+            <section id="section-refunds" class="animate-entry">
+                <div class="flex gap-8 items-start mb-12">
+                    <div class="hidden md:block section-marker text-[10px] font-black uppercase tracking-[0.5em] text-slate-300 pt-2">Chapter Three</div>
+                    <div>
+                        <div class="alpine-line mb-4"></div>
+                        <h3 class="text-3xl font-extrabold text-slate-900 mb-4">Cancellations & Refunds</h3>
+                        <p class="text-slate-500 leading-relaxed max-w-2xl">Guidance on handling changed plans. Winter refunds operate on a strict notice tier, while medical grounds provide total relief with proper documentation.</p>
+                    </div>
+                </div>
+                <div class="space-y-4" id="refunds-list"></div>
+            </section>
+            
+            <!-- CHAPTER 4: RULES -->
+            <section id="section-rules" class="animate-entry">
+                <div class="flex gap-8 items-start mb-12">
+                    <div class="hidden md:block section-marker text-[10px] font-black uppercase tracking-[0.5em] text-slate-300 pt-2">Chapter Four</div>
+                    <div>
+                        <div class="alpine-line mb-4"></div>
+                        <h3 class="text-3xl font-extrabold text-slate-900 mb-4">Eligibility & Rules</h3>
+                        <p class="text-slate-500 leading-relaxed max-w-2xl">The foundation of the club's community. These rules ensure that all members contribute to the lodge atmosphere and meet the geographic requirements set in the Constitution.</p>
+                    </div>
+                </div>
+                <div class="space-y-4" id="rules-list"></div>
+            </section>
+
+            <!-- CHAPTER 5: STATUS -->
+            <section id="section-status" class="animate-entry">
+                <div class="flex gap-8 items-start mb-12">
+                    <div class="hidden md:block section-marker text-[10px] font-black uppercase tracking-[0.5em] text-slate-300 pt-2">Chapter Five</div>
+                    <div>
+                        <div class="alpine-line mb-4"></div>
+                        <h3 class="text-3xl font-extrabold text-slate-900 mb-4">Membership Status</h3>
+                        <p class="text-slate-500 leading-relaxed max-w-2xl">Information on handling transitions, whether pausing membership through unfinancial status or formal resignation from the club records.</p>
+                    </div>
+                </div>
+                <div class="space-y-4" id="status-list"></div>
+            </section>
+
+            <!-- CHAPTER 6: FACILITIES -->
+            <section id="section-facilities" class="animate-entry">
+                <div class="flex gap-8 items-start mb-12">
+                    <div class="hidden md:block section-marker text-[10px] font-black uppercase tracking-[0.5em] text-slate-300 pt-2">Chapter Six</div>
+                    <div>
+                        <div class="alpine-line mb-4"></div>
+                        <h3 class="text-3xl font-extrabold text-slate-900 mb-4">Lodge Facilities</h3>
+                        <p class="text-slate-500 leading-relaxed max-w-2xl">Regulations for in-lodge amenities. Proper use of lockers and ski storage is essential for maintaining the orderly communal environment our members expect.</p>
+                    </div>
+                </div>
+                <div class="space-y-4" id="facilities-list"></div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="bg-slate-900 text-white py-24 px-6">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="flex justify-center mb-8">
+                <img src="ASC Logo.PNG" alt="Albury Ski Club Logo" class="h-20 w-auto opacity-50 grayscale hover:grayscale-0 transition-all">
+            </div>
+            <p class="text-xl font-bold mb-2">Albury Ski Club Inc.</p>
+            <a href="https://alburyskiclub.au" target="_blank" class="text-red-500 font-bold hover:text-red-400 transition-colors mb-4 inline-block">alburyskiclub.au</a>
+            <p class="text-slate-400 text-sm mb-12">ABN 86 632 921 354 | Founded 1935</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left border-t border-white/10 pt-12">
+                <div>
+                    <h5 class="text-xs font-black uppercase tracking-widest text-red-500 mb-4">Falls Creek</h5>
+                    <p class="text-sm text-slate-300">17 Sitzmark St<br>Falls Creek VIC</p>
+                </div>
+                <div>
+                    <h5 class="text-xs font-black uppercase tracking-widest text-red-500 mb-4">Thredbo</h5>
+                    <p class="text-sm text-slate-300">16 Mountain Dr<br>Thredbo NSW</p>
+                </div>
+                <div>
+                    <h5 class="text-xs font-black uppercase tracking-widest text-red-500 mb-4">Mailing</h5>
+                    <p class="text-sm text-slate-300">PO Box 120<br>Albury NSW 2640</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const faqData = [
+            { id: 1, category: 'fees', q: "When are annual fees reviewed and set?", a: "Fees are effective for the financial year running from 1 October to 30 September. The Committee reviews the following year's fees each September for publication and implementation at the start of October each year.", source: "Fees for Booking and Joining 2025 & 2026" },
+            { id: 2, category: 'fees', q: "When are my annual subscription fees due, and when can I start renewing them?", a: "Subscriptions are due on 1 December each year. However, members may renew their subscriptions online starting from 1 October.", source: "ASC Booking Guidelines 2026" },
+            { id: 3, category: 'fees', q: "Is there a different subscription rate for young adults aged 18 to 23?", a: "Yes. To encourage continued membership as juniors transition to adulthood, those aged 18 to 23 are charged a reduced rate of $255.00, which is 60% of the full adult subscription.", source: "Fees for Booking and Joining 2025 & 2026", hasFeeChart: true },
+            { id: 4, category: 'fees', q: "What is the process for an unfinancial member to reinstate, and is this an option instead of cancelling?", a: "Becoming unfinancial is sometimes an option for members thinking of cancelling but wishing to keep the door open. However, while unfinancial:<br><br>• <strong>No Authority:</strong> You have no booking or voting authority.<br>• <strong>Lodge Access:</strong> If staying as a guest, you pay full associate rates.<br>• <strong>Reinstatement:</strong> Pay the lesser of outstanding fees OR the adult joining fee ($3,750).", source: "Reinstate Unfinancial Members Guidelines" },
+            
+            { id: 5, category: 'bookings', q: "When do winter bookings officially open?", a: "Winter bookings open at 00:01 am on 1 October for financial members and 00:01 am on 1 February for associates. <strong>Member Responsibility:</strong> Bookings made via technical loopholes before these times are invalid and will be cancelled.", source: "Winter Booking Protocols" },
+            { id: 6, category: 'bookings', q: "What is the preferred method for making and paying for a booking?", a: "The preferred method is online via the club website using Mastercard or Visa. Payment must be in full at time of booking. American Express is not accepted.", source: "ASC Booking Guidelines 2026" },
+            { id: 7, category: 'bookings', q: "Can my junior-aged child make their own bookings or sponsor associates?", a: "No. Bookings and associate sponsorships are only accepted from Adult Financial Members. Junior members do not have authority to process bookings.", source: "ASC Booking Guidelines 2026" },
+            { id: 8, category: 'bookings', q: "Are there minimum occupancy requirements for units in winter?", a: "Yes. Units at Falls Creek require a minimum occupancy of 2 adults per night during the winter season. Associates cannot book a unit unless a member is present.", source: "ASC Booking Guidelines 2026" },
+            { id: 9, category: 'bookings', q: "How far in advance can I book peak summer periods?", a: "Consecutive bookings for the same member for periods such as Christmas, New Year, or festivals can only be made six months in advance and must be paid in full immediately.", source: "ASC Booking Guidelines 2026" },
+            { id: 10, category: 'bookings', q: "What are the rules and costs for 'Whole of Lodge' bookings?", a: "<strong>Thredbo:</strong> All 14 beds must be paid for in full ($565 summer rate).<br><strong>Falls Creek:</strong> Summer flat rates apply ($1,500 lodge; $1,665 inc. units).<br><strong>Note:</strong> You must provide a full list of attendees. Groups over 25 in summer may receive a 20% discount.", source: "ASC Booking Guidelines 2026" },
+
+            { id: 11, category: 'refunds', q: "How do I request a refund, and who do I contact?", a: "All refund requests must be made in writing (email acceptable) by the member who made the booking to the relevant Booking Officer.", source: "Guidelines for Cancellations" },
+            { id: 12, category: 'refunds', q: "What is the refund policy for summer vs. winter bookings?", a: "<strong>Summer:</strong> Full refund at discretion, except for peak weekends/holidays.<br><strong>Winter:</strong> Refunds are tiered based on the notice period provided.", source: "Guidelines for Cancellations", hasRefundBar: true },
+            { id: 13, category: 'refunds', q: "How much notice do I need for a 100% winter refund?", a: "<strong>28+ days:</strong> 100% refund.<br><strong>10–28 days:</strong> 50% refund.<br><strong><10 days:</strong> 0–50% (Committee decision).<br><strong>Note:</strong> If beds are reallocated, a 100% refund applies regardless of notice.", source: "Guidelines for Cancellations" },
+            { id: 14, category: 'refunds', q: "What if I cancel for medical reasons and who decides?", a: "Medical grounds receive 100% refund with certificate/Stat Dec. <strong>Decision Authority:</strong> Generally at Booking Officer discretion, but windows <10 days require Committee decision.", source: "Guidelines for Cancellations" },
+            { id: 15, category: 'refunds', q: "Is there a fee for refunds to a bank account?", a: "Yes. While refunds to your 'Member Wallet' are free, any refund to a bank account incurs a 3% administrative fee.", source: "Guidelines for Cancellations; Reimbursement Policy" },
+
+            { id: 16, category: 'rules', q: "What is the 'Residential Condition' and are there exceptions?", a: "Members must reside within an 80km radius of the Albury Post Office. Exceptions include existing members who move away, or immediate family of qualified members.", source: "Constitution" },
+            { id: 17, category: 'rules', q: "What are the requirements for working bees and bed nights?", a: "<strong>Working Bees:</strong> Attendance at one bee is expected before applying.<br><strong>Bed Nights:</strong> Stay at Falls Creek for 7 winter nights (3 consecutive) as non-unit occupant. Thredbo nights do not count.", source: "Prospective Member Guidelines" },
+            { id: 18, category: 'rules', q: "When does a junior member become an adult member?", a: "On their 18th birthday. They gain full voting privileges and assume adult responsibilities immediately.", source: "Constitution" },
+            { id: 19, category: 'rules', q: "What are the restrictions on 'Summer Memberships'?", a: "Summer members are restricted to summer usage only for the first two years of membership to protect winter capacity.", source: "Summer Membership Policy" },
+
+            { id: 20, category: 'status', q: "What happens if I don't pay my annual subscription on time?", a: "Deemed unfinancial if unpaid 2 months after invoice. Committee can remove names from register after 2 weeks' notice.", source: "Constitution" },
+            { id: 21, category: 'status', q: "What is the 'Inactive' status for unfinancial members?", a: "Prevents you from using club facilities or the booking platform until active and fully subscribed again.", source: "Reinstate Unfinancial Members Guidelines" },
+            { id: 22, category: 'status', q: "How do I formally resign my membership?", a: "Submit resignation in writing to the Secretary. You will be removed from the Membership Register.", source: "Reinstate Unfinancial Members Guidelines" },
+            { id: 23, category: 'status', q: "Can the club cancel my membership for other reasons?", a: "Yes. Committee may suspend/expel for persistent refusal to comply with rules or prejudicial behavior (requires 2/3 resolution).", source: "Constitution" },
+
+            { id: 24, category: 'facilities', q: "What are the rules for using lockers and ski storage?", a: "<strong>Falls Creek:</strong> Items not taken off-mountain must be in assigned lockers. Skis must be in the ski storage room, not tunnel. <strong>Note:</strong> Vacate by 1:00 PM on departure day.", source: "Code of Conduct" },
+            { id: 25, category: 'facilities', q: "How do I apply for a locker?", a: "Managed by the Committee. Contact the Secretary or relevant Lodge Booking Officer to inquire about availability and fees.", source: "Constitution" }
+        ];
+
+        function renderFAQ() {
+            const groups = {
+                fees: document.getElementById('fees-list'),
+                bookings: document.getElementById('bookings-list'),
+                refunds: document.getElementById('refunds-list'),
+                rules: document.getElementById('rules-list'),
+                status: document.getElementById('status-list'),
+                facilities: document.getElementById('facilities-list')
+            };
+
+            faqData.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'faq-item border border-slate-200 rounded-3xl p-1 bg-slate-50/50';
+                
+                let visual = '';
+                if(item.hasFeeChart) visual = `<div class="chart-wrapper"><canvas id="chart-${item.id}"></canvas></div>`;
+                if(item.hasRefundBar) visual = `
+                    <div class="my-6 max-w-md bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <div class="flex justify-between text-[10px] font-black uppercase text-slate-400 mb-2 tracking-tighter"><span>Refund Availability</span><span>Notice Days</span></div>
+                        <div class="h-3 w-full bg-slate-100 rounded-full flex overflow-hidden">
+                            <div class="h-full bg-green-500 w-[60%] border-r border-white"></div>
+                            <div class="h-full bg-yellow-400 w-[25%] border-r border-white"></div>
+                            <div class="h-full bg-red-400 w-[15%]"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-500 font-bold mt-2"><span>100% (28+)</span><span>50% (10-28)</span><span>0-50% (<10)</span></div>
+                    </div>`;
+
+                el.innerHTML = `
+                    <button onclick="toggleFaq(this)" class="w-full text-left px-6 py-5 flex items-center justify-between group">
+                        <div class="flex items-center gap-4">
+                            <span class="text-xs font-black text-slate-300 group-hover:text-red-600 transition-colors">${String(item.id).padStart(2, '0')}</span>
+                            <span class="font-bold text-slate-900 group-hover:translate-x-1 transition-transform">${item.q}</span>
+                        </div>
+                        <span class="chevron text-slate-300 text-lg transition-transform">▾</span>
+                    </button>
+                    <div class="faq-answer px-6">
+                        <div class="min-h-0">
+                            <div class="text-slate-600 text-sm leading-relaxed max-w-2xl">${item.a}</div>
+                            ${visual}
+                            <div class="py-4 border-t border-slate-100 flex items-center justify-between">
+                                <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Doc: ${item.source}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                groups[item.category].appendChild(el);
+                
+                if(item.hasFeeChart) setTimeout(() => initChart(`chart-${item.id}`), 10);
+            });
+        }
+
+        function toggleFaq(btn) {
+            const item = btn.closest('.faq-item');
+            item.classList.toggle('open');
+        }
+
+        function scrollToSection(id) {
+            const el = document.getElementById(`section-${id}`);
+            window.scrollTo({ top: el.offsetTop - 100, behavior: 'smooth' });
+        }
+
+        function initChart(id) {
+            const ctx = document.getElementById(id).getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Adult', '18-23', 'Junior'],
+                    datasets: [{
+                        label: 'Annual $',
+                        data: [425, 255, 127],
+                        backgroundColor: '#dc2626',
+                        borderRadius: 6,
+                        barThickness: 30
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { grid: { display: false }, border: { display: false } }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => renderFAQ());
+
+        // --- AI ASSISTANT LOGIC ---
+        const API_KEY = "AIzaSyDxC0qTqVE9JRZy3AhHSDqry1vXXWuzj2A";
+        
+        async function askAI() {
+            const input = document.getElementById('ai-input');
+            const submitBtn = document.getElementById('ai-submit');
+            const chatContainer = document.getElementById('ai-chat-container');
+            const query = input.value.trim();
+            
+            if (!query) return;
+
+            // 1. UI Feedback
+            input.value = '';
+            input.disabled = true;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>Thinking...</span>';
+
+            // User message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'bg-slate-900 self-end px-5 py-4 rounded-2xl rounded-tr-none text-white text-sm max-w-[85%] leading-relaxed shadow-md ml-auto';
+            userMsg.innerText = query;
+            chatContainer.appendChild(userMsg);
+            chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
+
+            // 2. RAG Logic: Find relevant policies
+            const searchTerms = query.toLowerCase().split(' ');
+            const relevantPolicies = ASC_POLICY_LIBRARY.filter(p => {
+                return p.keywords.some(k => searchTerms.includes(k.toLowerCase())) ||
+                       p.title.toLowerCase().includes(query.toLowerCase()) ||
+                       searchTerms.some(t => t.length > 3 && p.content.toLowerCase().includes(t));
+            }).slice(0, 3);
+
+            // UI Citations
+            const citeArea = document.getElementById('ai-citations');
+            citeArea.innerHTML = '<span class="text-[10px] font-black uppercase text-slate-300 w-full mb-1">Citing Sources:</span>';
+            relevantPolicies.forEach(p => {
+                const badge = document.createElement('span');
+                badge.className = 'px-2 py-1 bg-slate-100 text-slate-400 text-[9px] font-bold rounded-lg border border-slate-200 uppercase';
+                badge.innerText = p.title;
+                citeArea.appendChild(badge);
+            });
+            citeArea.classList.remove('hidden');
+
+            const context = relevantPolicies.length > 0 
+                ? relevantPolicies.map(p => `SOURCE: ${p.title}\n${p.content}`).join('\n\n')
+                : "No specific policy matched. Answer from general club knowledge but warn the user.";
+
+            // 3. Gemini Call
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `You are the Albury Ski Club Secretary AI. 
+                                Respond in a helpful, professional, and definitive tone.
+                                Use exactly the following POLICY CONTEXT to answer the user's question. 
+                                If the information is not in the context, tell the user to contact the Club Secretary at secretary@alburyskiclub.au.
+                                Format your response in clean Markdown.
+                                
+                                POLICY CONTEXT:
+                                ${context}
+                                
+                                USER QUESTION:
+                                ${query}`
+                            }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, I couldn't process that request.";
+
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'bg-white self-start px-5 py-4 rounded-2xl rounded-tl-none text-slate-700 text-sm max-w-[95%] leading-relaxed shadow-sm border border-slate-100 markdown-content';
+                aiMsg.innerHTML = formatMarkdown(aiText);
+                chatContainer.appendChild(aiMsg);
+
+            } catch (err) {
+                console.error(err);
+                const errMsg = document.createElement('div');
+                errMsg.className = 'text-red-500 text-xs italic p-4';
+                errMsg.innerText = "Connection lost. Please try again later or contact the secretary.";
+                chatContainer.appendChild(errMsg);
+            }
+
+            // 4. Reset UI
+            input.disabled = false;
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>Ask</span>';
+            chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
+        }
+
+        // Simple Markdown formatter for the chat UI
+        function formatMarkdown(text) {
+            return text
+                .replace(/^# (.*$)/gim, '<h4 class="font-bold text-slate-900 mt-2">$1</h4>')
+                .replace(/^## (.*$)/gim, '<h5 class="font-bold text-slate-900 mt-2">$1</h5>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-900">$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>');
+        }
+
+        // Allow 'Enter' key to submit
+        document.getElementById('ai-input')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') askAI();
+        });
+    </script>
+</body>
+</html>
