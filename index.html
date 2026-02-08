@@ -521,71 +521,70 @@
             };
             listModels();
 
-            // DYNAMIC INTELLIGENCE: Auto-select the best available model
-            let cachedModel = null;
-            const discoverBestModel = async () => {
-                if (cachedModel) return cachedModel;
-                try {
-                    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${cleanKey}`);
-                    const data = await r.json();
-                    const available = data.models?.map(m => m.name.replace('models/', '')) || [];
-                    
-                    // Priority Ranking: 3.0 -> 2.5 -> 2.0 -> 1.5
-                    const priorities = ['gemini-3-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
-                    cachedModel = priorities.find(p => available.includes(p)) || available.find(m => m.includes('flash')) || 'gemini-1.5-flash';
-                    
-                    console.log("ASC_AI_DYNAMIC_MODEL_SELECTED:", cachedModel);
-                    return cachedModel;
-                } catch (e) {
-                    console.error("ASC_AI_DISCOVERY_FAILED:", e);
-                    return 'gemini-1.5-flash'; // Hard fallback
+            // WATERFALL RESILIENCE: Try every possible model/version until success
+            const tryRequestWaterfall = async () => {
+                const discovery = await discoverBestModel();
+                // Get models from discovered list, prioritizing Flash
+                const discoveredModels = (discovery.available || []).filter(m => m.includes('flash'));
+                const candidates = [...new Set(['gemini-3-flash', 'gemini-2.5-flash', ...discoveredModels, 'gemini-2.0-flash', 'gemini-1.5-flash'])];
+                const versions = ['v1beta', 'v1'];
+
+                for (const model of candidates) {
+                    for (const version of versions) {
+                        for (const method of ['streamGenerateContent', 'generateContent']) {
+                            try {
+                                const endpoint = `https://generativelanguage.googleapis.com/${version}/models/${model}:${method}?key=${cleanKey}`;
+                                console.log(`ASC_AI_DIAGNOSTIC: Trying ${model} via ${version} (${method})`);
+
+                                const response = await fetch(endpoint, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    signal: aiAbortController.signal,
+                                    body: JSON.stringify({
+                                        contents: [{
+                                            parts: [{
+                                                text: `You are the Albury Ski Club Secretary AI. 
+                                                
+                                                STRICT GUARDRAILS:
+                                                1. Only answer about club-specific policies, membership, and lodge info.
+                                                2. If the user asks for code, recipes, general non-club advice, or random off-topic things, you MUST reply with: "There's no answer for that, particularly since it's really out of scope."
+                                                3. NEVER HALLUCINATE. If the context below doesn't contain the answer, say: "I couldn't find a specific policy for that. Please contact the Secretary at secretary@alburyskiclub.au for a definitive answer."
+                                                4. Respond in professional Markdown.
+                                                
+                                                <policy_context>
+                                                ${context}
+                                                </policy_context>
+                                                
+                                                USER QUESTION:
+                                                ${query}`
+                                            }]
+                                        }]
+                                    })
+                                });
+
+                                if (response.status === 429) throw new Error("RATE_LIMIT");
+                                if (response.ok) {
+                                    console.log(`ASC_AI_SUCCESS: Connected to ${model} via ${version}`);
+                                    return { response, model, version, method };
+                                }
+                                
+                                const errData = await response.json().catch(() => ({}));
+                                console.warn(`ASC_AI_FAIL: ${model}/${version}/${method} -> ${response.status}`, errData);
+                                // Continue to next candidate if not a Rate Limit
+                            } catch (e) {
+                                if (e.message === "RATE_LIMIT") throw e;
+                                console.error(`ASC_AI_ERROR:`, e);
+                            }
+                        }
+                    }
                 }
-            };
-
-            const tryRequest = async (version = 'v1beta', useStreaming = true) => {
-                const model = await discoverBestModel();
-                const method = useStreaming ? 'streamGenerateContent' : 'generateContent';
-                const endpoint = `https://generativelanguage.googleapis.com/${version}/models/${model}:${method}?key=${cleanKey}`;
-                
-                console.log(`ASC_AI_DIAGNOSTIC: Requesting ${model} via ${version} (${useStreaming ? 'Streaming' : 'Batch'})`);
-
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    signal: aiAbortController.signal,
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{
-                                text: `You are the Albury Ski Club Secretary AI. 
-                                
-                                STRICT GUARDRAILS:
-                                1. Only answer about club-specific policies, membership, and lodge info.
-                                2. If the user asks for code, recipes, general non-club advice, or random off-topic things, you MUST reply with: "There's no answer for that, particularly since it's really out of scope."
-                                3. NEVER HALLUCINATE. If the context below doesn't contain the answer, say: "I couldn't find a specific policy for that. Please contact the Secretary at secretary@alburyskiclub.au for a definitive answer."
-                                4. Respond in professional Markdown.
-                                
-                                <policy_context>
-                                ${context}
-                                </policy_context>
-                                
-                                USER QUESTION:
-                                ${query}`
-                            }]
-                        }]
-                    })
-                });
-
-                if (response.status === 429) throw new Error("RATE_LIMIT");
-                if (response.status === 404 && useStreaming) return tryRequest(version, false); 
-                if (!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    throw new Error(errData.error?.message || `API_ERROR_${response.status}`);
-                }
-                return response;
+                throw new Error("No available models found for this API key. [Codes: 403/404]");
             };
 
             try {
-                const response = await tryRequest();
+                const { response, method } = await tryRequestWaterfall();
+                const isStreaming = method === 'streamGenerateContent';
+                
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let fullText = "";
@@ -600,8 +599,7 @@
                     const chunk = decoder.decode(value, { stream: true });
                     buffer += chunk;
                     
-                    // Handle both Streaming ([{},{}]) and Batch ({}) formats
-                    if (!response.url.includes('streamGenerateContent')) {
+                    if (!isStreaming) {
                         try {
                             const json = JSON.parse(buffer);
                             fullText = json.candidates?.[0]?.content?.parts?.[0]?.text || "";
