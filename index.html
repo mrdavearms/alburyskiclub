@@ -152,11 +152,14 @@
                         </div>
                     </div>
 
-                    <!-- AI Legal Disclaimer -->
-                    <div class="px-8 pb-4">
-                        <p class="text-[9px] text-slate-400 text-center leading-relaxed">
-                            <span class="font-bold">Disclaimer:</span> This AI assistant is for informational purposes only. Responses are generated based on club policies but should not be considered legal or binding advice. For official confirmation, contact the <span class="font-bold">Club Secretary</span>.
+                    <div class="flex items-center justify-between px-8 mb-4">
+                        <p class="text-[9px] text-slate-400 leading-relaxed max-w-[60%]">
+                            <span class="font-bold">Disclaimer:</span> Information is based on policy records but is not legally binding.
                         </p>
+                        <button id="ai-test-btn" class="bg-indigo-50 border border-indigo-100 text-indigo-600 px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-indigo-100 transition-colors uppercase tracking-wider flex items-center gap-2">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            Test API
+                        </button>
                     </div>
 
                     <div class="relative group">
@@ -529,7 +532,6 @@
             // WATERFALL RESILIENCE: Try every possible model/version until success
             const tryRequestWaterfall = async () => {
                 const discovery = await discoverBestModel();
-                // Get models from discovered list, prioritizing Flash
                 const discoveredModels = (discovery.available || []).filter(m => m.includes('flash'));
                 const candidates = [...new Set(['gemini-3-flash', 'gemini-2.5-flash', ...discoveredModels, 'gemini-2.0-flash', 'gemini-1.5-flash'])];
                 const versions = ['v1beta', 'v1'];
@@ -538,9 +540,13 @@
                     for (const version of versions) {
                         for (const method of ['streamGenerateContent', 'generateContent']) {
                             try {
-                                const endpoint = `https://generativelanguage.googleapis.com/${version}/models/${model}:${method}?key=${cleanKey}`;
-                                console.log(`ASC_AI_DIAGNOSTIC: Trying ${model} via ${version} (${method})`);
+                                const statusLine = document.createElement('div');
+                                statusLine.className = 'text-[10px] text-slate-400 font-mono mt-1 opacity-70';
+                                statusLine.innerHTML = `&rarr; Checking ${model} (${version})...`;
+                                aiMsg.appendChild(statusLine);
+                                chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'auto' });
 
+                                const endpoint = `https://generativelanguage.googleapis.com/${version}/models/${model}:${method}?key=${cleanKey}`;
                                 const response = await fetch(endpoint, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
@@ -569,13 +575,14 @@
 
                                 if (response.status === 429) throw new Error("RATE_LIMIT");
                                 if (response.ok) {
-                                    console.log(`ASC_AI_SUCCESS: Connected to ${model} via ${version}`);
+                                    statusLine.innerHTML = `&check; ${model} (${version}) SUCCESS!`;
+                                    statusLine.className = 'text-[10px] text-emerald-500 font-bold mt-1';
                                     return { response, model, version, method };
                                 }
                                 
                                 const errData = await response.json().catch(() => ({}));
-                                console.warn(`ASC_AI_FAIL: ${model}/${version}/${method} -> ${response.status}`, errData);
-                                // Continue to next candidate if not a Rate Limit
+                                statusLine.innerHTML = `&times; ${model} (${version}) FAIL (${response.status})`;
+                                statusLine.className = 'text-[10px] text-rose-400 font-mono mt-1 opacity-60';
                             } catch (e) {
                                 if (e.message === "RATE_LIMIT") throw e;
                                 console.error(`ASC_AI_ERROR:`, e);
@@ -583,7 +590,7 @@
                         }
                     }
                 }
-                throw new Error("No available models found for this API key. [Codes: 403/404]");
+                throw new Error("PROVISION_ERROR: Your API key is active, but Google has blocked generation access for the discovered models in your region. Fix: Check 'Terms of Service' in AI Studio.");
             };
 
             try {
@@ -639,7 +646,15 @@
                     aiMsg.innerHTML = "The AI is currently resting due to high demand (Daily limit reached). Please try again in 60 seconds!";
                 } else {
                     console.error("AI Error:", err);
-                    aiMsg.innerHTML = "The Club Secretary AI is temporarily offline. [Details: " + err.message + "]. Please refresh.";
+                    aiMsg.innerHTML = `<div class="bg-rose-50 p-4 rounded-xl border border-rose-100 text-rose-800">
+                        <strong class="block mb-1 text-xs uppercase tracking-tighter opacity-70">Diagnostic Error Detail:</strong>
+                        <p class="text-[13px] font-medium leading-relaxed">${err.message}</p>
+                        <div class="mt-4 pt-4 border-t border-rose-200">
+                             <a href="https://aistudio.google.com/" target="_blank" class="text-[11px] font-bold text-rose-600 underline flex items-center gap-1">
+                                Open AI Studio to Check API Key & Terms &rarr;
+                             </a>
+                        </div>
+                    </div>`;
                 }
             } finally {
                 input.disabled = false;
@@ -665,6 +680,11 @@
         document.getElementById('ai-input')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') askAI();
         });
+
+        document.getElementById('ai-test-btn').onclick = () => {
+            document.getElementById('ai-input').value = "Say 'The system is connected and working!'";
+            askAI();
+        };
     </script>
 </body>
 </html>
