@@ -152,6 +152,13 @@
                         </div>
                     </div>
 
+                    <!-- AI Legal Disclaimer -->
+                    <div class="px-8 pb-4">
+                        <p class="text-[9px] text-slate-400 text-center leading-relaxed">
+                            <span class="font-bold">Disclaimer:</span> This AI assistant is for informational purposes only. Responses are generated based on club policies but should not be considered legal or binding advice. For official confirmation, contact the <span class="font-bold">Club Secretary</span>.
+                        </p>
+                    </div>
+
                     <div class="relative group">
                         <input type="text" id="ai-input" placeholder="Ask about refunds, memberships, or lodge rules..." 
                             class="w-full bg-slate-100 border-none rounded-2xl px-6 py-5 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-red-600 focus:bg-white transition-all outline-none pr-32 font-medium shadow-inner">
@@ -426,12 +433,19 @@
             }
         }
 
+        function sanitizeInput(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         async function askAI() {
             const input = document.getElementById('ai-input');
             const submitBtn = document.getElementById('ai-submit');
             const stopBtn = document.getElementById('ai-stop');
             const chatContainer = document.getElementById('ai-chat-container');
-            const query = input.value.trim();
+            const queryRaw = input.value.trim();
+            const query = sanitizeInput(queryRaw);
             
             if (!query) return;
 
