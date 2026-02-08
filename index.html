@@ -449,9 +449,15 @@
             
             if (!query) return;
 
-            // 0. Safety Check
-            if (typeof ASC_POLICY_LIBRARY === 'undefined') {
-                alert("Policy library loading... please try again in a moment.");
+            // 0. Reliability & Security Check
+            if (API_KEY.includes("PLACEHOLDER")) {
+                alert("AI Key not found. Please ensure your GitHub Secret 'GEMINI_API_KEY' is set and the site is deployed via GitHub Actions.");
+                console.error("Critical: GEMINI_API_KEY placeholder detected. Injection failed.");
+                return;
+            }
+
+            if (typeof ASC_POLICY_LIBRARY === 'undefined' || !Array.isArray(ASC_POLICY_LIBRARY) || ASC_POLICY_LIBRARY.length === 0) {
+                alert("Policy library is still loading... please try again in a few seconds.");
                 return;
             }
 
@@ -470,11 +476,10 @@
             chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
 
             // 2. RAG Logic: Find relevant policies (Instant)
-            const searchTerms = query.toLowerCase().split(' ');
+            const searchTerms = query.toLowerCase().split(/\s+/);
             const relevantPolicies = ASC_POLICY_LIBRARY.filter(p => {
-                return p.keywords.some(k => searchTerms.includes(k.toLowerCase())) ||
-                       p.title.toLowerCase().includes(query.toLowerCase()) ||
-                       searchTerms.some(t => t.length > 3 && p.content.toLowerCase().includes(t));
+                const combinedText = (p.title + " " + (p.keywords?.join(" ") || "") + " " + p.content).toLowerCase();
+                return searchTerms.some(term => term.length > 2 && combinedText.includes(term));
             }).slice(0, 3);
 
             // UI Citations (Instant)
@@ -486,11 +491,11 @@
                 badge.innerText = p.title;
                 citeArea.appendChild(badge);
             });
-            citeArea.classList.remove('hidden');
+            citeArea.classList.toggle('hidden', relevantPolicies.length === 0);
 
             const context = relevantPolicies.length > 0 
                 ? relevantPolicies.map(p => `SOURCE: ${p.title}\n${p.content}`).join('\n\n')
-                : "No specific policy matched. Answer from general club knowledge but warn the user.";
+                : "No specific policy matched. Inform the user you couldn't find a direct policy match.";
 
             // 3. Streaming Gemini Call
             aiAbortController = new AbortController();
@@ -509,11 +514,12 @@
                         contents: [{
                             parts: [{
                                 text: `You are the Albury Ski Club Secretary AI. 
-                                IMPORTANT PREREQUISITE:
-                                1. You only answer questions about Albury Ski Club lodge policies, membership, and club-specific information found in the context.
-                                2. If the user's question is OUT OF SCOPE (e.g., coding, recipes, general non-club advice, or completely unrelated banter), you MUST respond exactly with: "There's no answer for that, particularly since it's really out of scope."
-                                3. DO NOT MAKE THINGS UP. You can ONLY get information from the provided policy context below. If the answer is not in the context, politely state you don't know and provide the Secretary's contact info: secretary@alburyskiclub.au.
-                                4. Use a helpful and professional tone for on-topic questions.
+                                
+                                STRICT GUARDRAILS:
+                                1. Only answer about club-specific policies, membership, and lodge info.
+                                2. If the user asks for code, recipes, general non-club advice, or random off-topic things, you MUST reply with: "There's no answer for that, particularly since it's really out of scope."
+                                3. NEVER HALLUCINATE. If the context below doesn't contain the answer, say: "I couldn't find a specific policy for that. Please contact the Secretary at secretary@alburyskiclub.au for a definitive answer."
+                                4. Respond in professional Markdown.
                                 
                                 <policy_context>
                                 ${context}
@@ -526,39 +532,59 @@
                     })
                 });
 
+                if (response.status === 429) {
+                    throw new Error("RATE_LIMIT");
+                }
+                if (!response.ok) {
+                    throw new Error("API_ERROR");
+                }
+
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let fullText = "";
-                aiMsg.innerHTML = ""; // Clear initial loader
+                let buffer = ""; // Streaming buffer for robust parsing
+                
+                aiMsg.innerHTML = ""; // Clear loader
 
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
                     
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split('\n');
+                    buffer += decoder.decode(value, { stream: true });
                     
-                    for (const line of lines) {
-                        if (line.startsWith('data: ') || line.trim() === '') continue;
+                    // Gemini streamGenerateContent returns a JSON array over multiple chunks.
+                    // We need to parse each complete JSON object {} from within the array [{}, {}]
+                    let boundary;
+                    while ((boundary = buffer.indexOf('}')) !== -1) {
+                        const jsonStr = buffer.substring(0, boundary + 1).replace(/^[,\[\s]+/, '').replace(/^[,\s]+/, '');
+                        buffer = buffer.substring(boundary + 1);
+                        
+                        if (!jsonStr.startsWith('{')) continue;
+
                         try {
-                            const json = JSON.parse(line.replace(/^\[?,?/, '').replace(/\]?$/, ''));
+                            const json = JSON.parse(jsonStr);
                             const text = json.candidates?.[0]?.content?.parts?.[0]?.text || "";
                             fullText += text;
                             aiMsg.innerHTML = formatMarkdown(fullText);
-                            chatContainer.scrollTo({ top: chatContainer.scrollHeight });
-                        } catch (e) { /* partial chunk */ }
+                            chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'auto' });
+                        } catch (e) {
+                            // Partial JSON, put it back in buffer
+                            buffer = jsonStr + "}" + buffer;
+                            break;
+                        }
                     }
                 }
 
             } catch (err) {
                 if (err.name === 'AbortError') {
-                    aiMsg.innerHTML += '<br><span class="text-xs text-slate-400 italic">[Response stopped by user]</span>';
+                    aiMsg.innerHTML += '<br><span class="text-[10px] text-slate-400 italic uppercase font-black tracking-widest mt-2 block">[Response Stopped]</span>';
+                } else if (err.message === "RATE_LIMIT") {
+                    aiMsg.innerHTML = "The AI is currently resting due to high demand (Daily limit reached). Please try again tomorrow!";
                 } else {
-                    console.error(err);
-                    aiMsg.innerHTML = "Connection lost. Please try again later.";
+                    console.error("AI Error:", err);
+                    aiMsg.innerHTML = "The Club Secretary AI is temporarily offline. Please refresh or try again later.";
                 }
             } finally {
-                // 4. Reset UI
                 input.disabled = false;
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<span>Ask</span>';
@@ -575,10 +601,10 @@
                 .replace(/^## (.*$)/gim, '<h5 class="font-bold text-slate-900 mt-2">$1</h5>')
                 .replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-900">$1</strong>')
                 .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n\n/g, '<div class="h-2"></div>')
                 .replace(/\n/g, '<br>');
         }
 
-        // Allow 'Enter' key to submit
         document.getElementById('ai-input')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') askAI();
         });
