@@ -19,7 +19,14 @@ jobs:
 
       - name: Inject API Key 💉
         run: |
-          sed -i 's/__GEMINI_API_KEY_PLACEHOLDER__/${{ secrets.GEMINI_API_KEY }}/g' index.html
+          # Use | as delimiter in case the API key contains slashes
+          sed -i 's|__GEMINI_API_KEY_PLACEHOLDER__|${{ secrets.GEMINI_API_KEY }}|g' index.html
+
+          # Verify the placeholder is gone (without leaking the actual key)
+          if grep -q "__GEMINI_API_KEY_PLACEHOLDER__" index.html; then
+            echo "Critical Error: API Key placeholder was not replaced!"
+            exit 1
+          fi
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
