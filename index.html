@@ -533,7 +533,8 @@
             const tryRequestWaterfall = async () => {
                 const discovery = await discoverBestModel();
                 const discoveredModels = (discovery.available || []).filter(m => m.includes('flash'));
-                const candidates = [...new Set(['gemini-3-flash', 'gemini-2.5-flash', ...discoveredModels, 'gemini-2.0-flash', 'gemini-1.5-flash'])];
+                // Use a wider net of stable models
+                const candidates = [...new Set(['gemini-3-flash', 'gemini-2.5-flash', ...discoveredModels, 'gemini-2.0-flash-exp', 'gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-flash'])];
                 const versions = ['v1beta', 'v1'];
 
                 for (const model of candidates) {
@@ -573,7 +574,12 @@
                                     })
                                 });
 
-                                if (response.status === 429) throw new Error("RATE_LIMIT");
+                                if (response.status === 429) {
+                                    statusLine.innerHTML = `&times; ${model} Rate Limited (429). Skipping...`;
+                                    statusLine.className = 'text-[10px] text-amber-500 font-mono mt-1';
+                                    continue; 
+                                }
+
                                 if (response.ok) {
                                     statusLine.innerHTML = `&check; ${model} (${version}) SUCCESS!`;
                                     statusLine.className = 'text-[10px] text-emerald-500 font-bold mt-1';
@@ -584,13 +590,12 @@
                                 statusLine.innerHTML = `&times; ${model} (${version}) FAIL (${response.status})`;
                                 statusLine.className = 'text-[10px] text-rose-400 font-mono mt-1 opacity-60';
                             } catch (e) {
-                                if (e.message === "RATE_LIMIT") throw e;
                                 console.error(`ASC_AI_ERROR:`, e);
                             }
                         }
                     }
                 }
-                throw new Error("PROVISION_ERROR: Your API key is active, but Google has blocked generation access for the discovered models in your region. Fix: Check 'Terms of Service' in AI Studio.");
+                throw new Error("PROVISION_ERROR: Key is working, but every door is locked (403) or crowded (429). Recommended: Refresh and try again in 5 minutes.");
             };
 
             try {
