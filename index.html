@@ -521,62 +521,91 @@
             const cleanKey = API_KEY.trim();
             console.log("ASC_AI_SECRET_STATUS: Key Active (Length: " + cleanKey.length + ")");
 
-            // LOCKED CONFIGURATION: Gemini 1.5 Flash (GA Stability)
+            // LOCKED CONFIGURATION: Gemini 1.5 Flash (v1 GA) with Fallback
             const makeGeminiRequest = async () => {
-                const model = 'gemini-1.5-flash';
-                const version = 'v1beta';
-                const method = 'streamGenerateContent';
+                const cleanKey = API_KEY.trim();
+                
+                // Diagnostic Logs
+                console.log("ASC_DEBUG_URL:", window.location.href);
+                console.log("ASC_DEBUG_REFERRER_HEADER_LIKELY:", window.location.href);
 
-                const statusLine = document.createElement('div');
-                statusLine.className = 'text-[10px] text-slate-400 font-mono mt-1 opacity-70';
-                statusLine.innerHTML = `&rarr; Connecting to ${model}...`;
-                aiMsg.appendChild(statusLine);
-                chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'auto' });
+                // Strategy: Try Primary (1.5 Flash), then Fallback (1.0 Pro)
+                const attempts = [
+                    { model: 'gemini-1.5-flash', version: 'v1beta' }, // v1beta is often more permissive for Flash
+                    { model: 'gemini-1.5-flash-latest', version: 'v1beta' },
+                    { model: 'gemini-1.0-pro', version: 'v1beta' }   // Old reliable
+                ];
 
-                const endpoint = `https://generativelanguage.googleapis.com/${version}/models/${model}:${method}?key=${cleanKey}`;
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    signal: aiAbortController.signal,
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{
-                                text: `You are the Albury Ski Club Secretary AI. 
-                                
-                                STRICT GUARDRAILS:
-                                1. Only answer about club-specific policies, membership, and lodge info.
-                                2. If the user asks for code, recipes, general non-club advice, or random off-topic things, you MUST reply with: "There's no answer for that, particularly since it's really out of scope."
-                                3. NEVER HALLUCINATE. If the context below doesn't contain the answer, say: "I couldn't find a specific policy for that. Please contact the Secretary at secretary@alburyskiclub.au for a definitive answer."
-                                4. Respond in professional Markdown.
-                                
-                                <policy_context>
-                                ${context}
-                                </policy_context>
-                                
-                                USER QUESTION:
-                                ${query}`
-                            }]
-                        }]
-                    })
-                });
+                for (const attempt of attempts) {
+                    const { model, version } = attempt;
+                    const method = 'streamGenerateContent';
+                    
+                    const statusLine = document.createElement('div');
+                    statusLine.className = 'text-[10px] text-slate-400 font-mono mt-1 opacity-70';
+                    statusLine.innerHTML = `&rarr; Connecting to ${model} (${version})...`;
+                    aiMsg.appendChild(statusLine);
+                    chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'auto' });
 
-                if (response.ok) {
-                    statusLine.innerHTML = `&check; ${model} Connected`;
-                    statusLine.className = 'text-[10px] text-emerald-500 font-bold mt-1';
-                    return { response, model, version, method };
+                    try {
+                        const endpoint = `https://generativelanguage.googleapis.com/${version}/models/${model}:${method}?key=${cleanKey}`;
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            signal: aiAbortController.signal,
+                            body: JSON.stringify({
+                                contents: [{
+                                    parts: [{
+                                        text: `You are the Albury Ski Club Secretary AI. 
+                                        
+                                        STRICT GUARDRAILS:
+                                        1. Only answer about club-specific policies, membership, and lodge info.
+                                        2. If the user asks for code, recipes, general non-club advice, or random off-topic things, you MUST reply with: "There's no answer for that, particularly since it's really out of scope."
+                                        3. NEVER HALLUCINATE. If the context below doesn't contain the answer, say: "I couldn't find a specific policy for that. Please contact the Secretary at secretary@alburyskiclub.au for a definitive answer."
+                                        4. Respond in professional Markdown.
+                                        
+                                        <policy_context>
+                                        ${context}
+                                        </policy_context>
+                                        
+                                        USER QUESTION:
+                                        ${query}`
+                                    }]
+                                }]
+                            })
+                        });
+
+                        if (response.ok) {
+                            statusLine.innerHTML = `&check; ${model} Connected`;
+                            statusLine.className = 'text-[10px] text-emerald-500 font-bold mt-1';
+                            return { response, model, version, method };
+                        }
+
+                        // If 404 (Not Found) or 503 (Overloaded), try next model
+                        if (response.status === 404 || response.status === 503) {
+                            console.warn(`Model ${model} failed with ${response.status}. Trying next...`);
+                            statusLine.innerHTML = `&times; ${model} ${response.status} (Skipping)`;
+                            continue;
+                        }
+
+                        // If 403 (Forbidden), it's a Key/Referrer issue - Stop immediately, don't retry
+                        if (response.status === 403) {
+                            const errorData = await response.json().catch(() => ({}));
+                            console.error("ASC_AI_API_ERROR:", errorData);
+                            throw new Error(`Access Denied (403): API Key blocked. Check Google Cloud Console "Website Restrictions". Ensure "${window.location.href}" is whitelisted.`);
+                        }
+
+                        // Other errors
+                        const errorData = await response.json().catch(() => ({}));
+                        const errorMessage = errorData.error?.message || response.statusText;
+                        throw new Error(`API Error (${response.status}): ${errorMessage}`);
+
+                    } catch (e) {
+                         if (e.message.includes('Access Denied')) throw e;
+                         console.error(e);
+                    }
                 }
 
-                // Capture detailed error info
-                const errorData = await response.json().catch(() => ({}));
-                const errorMessage = errorData.error?.message || response.statusText;
-                console.error("ASC_AI_API_ERROR:", errorData);
-                console.log("ASC_DEBUG_REFERRER:", document.referrer);
-
-                if (response.status === 403) {
-                    throw new Error(`Access Denied (403): The API Key blocked this request. likely due to "Website Restrictions" in Google Cloud Console. Current Referrer: "${document.referrer || 'Empty'}"`);
-                }
-
-                throw new Error(`API Error (${response.status}): ${errorMessage}`);
+                throw new Error("Connection Failed: All available models (1.5 Flash, 1.0 Pro) returned errors or 404s. Please check GCP project enablement.");
             };
 
             try {
