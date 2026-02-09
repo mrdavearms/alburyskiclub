@@ -570,6 +570,11 @@
                 const errorData = await response.json().catch(() => ({}));
                 const errorMessage = errorData.error?.message || response.statusText;
                 console.error("ASC_AI_API_ERROR:", errorData);
+                console.log("ASC_DEBUG_REFERRER:", document.referrer);
+
+                if (response.status === 403) {
+                    throw new Error(`Access Denied (403): The API Key blocked this request. likely due to "Website Restrictions" in Google Cloud Console. Current Referrer: "${document.referrer || 'Empty'}"`);
+                }
 
                 throw new Error(`API Error (${response.status}): ${errorMessage}`);
             };
