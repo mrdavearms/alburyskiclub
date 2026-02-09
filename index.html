@@ -529,11 +529,11 @@
                 console.log("ASC_DEBUG_URL:", window.location.href);
                 console.log("ASC_DEBUG_REFERRER_HEADER_LIKELY:", window.location.href);
 
-                // Strategy: Try Primary (1.5 Flash), then Fallback (1.0 Pro)
+                // Strategy: Try Primary (1.5 Flash on v1 GA), then Fallback
                 const attempts = [
-                    { model: 'gemini-1.5-flash', version: 'v1beta' }, // v1beta is often more permissive for Flash
-                    { model: 'gemini-1.5-flash-latest', version: 'v1beta' },
-                    { model: 'gemini-1.0-pro', version: 'v1beta' }   // Old reliable
+                    { model: 'gemini-1.5-flash', version: 'v1' },      // Stable GA
+                    { model: 'gemini-1.5-flash', version: 'v1beta' },  // Beta features
+                    { model: 'gemini-1.0-pro', version: 'v1beta' }     // Legacy Fallback
                 ];
 
                 for (const attempt of attempts) {
