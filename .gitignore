@@ -1,0 +1,17 @@
+# Local Context & Secrets
+.env
+*.secret
+
+# Logs
+logs/
+*.log
+
+# Editor
+.vscode/*
+!.vscode/tasks.json
+.idea/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
