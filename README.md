@@ -19,6 +19,27 @@ The "Albury Ski Club Secretary" AI engine is currently **hidden from public view
 - **Architecture:** The logic remains in `index.html` featuring a "Waterfall Resilience Engine" that cycles through Gemini 3.0, 2.5, 2.0, and 1.5 models.
 - **To Reactivate:** Remove `style="display: none !important;"` from the `#section-ai` element and update the API key in the GitHub Secrets (`GEMINI_API_KEY`).
 
+### 📊 Google Analytics 4 (GA4)
+
+The site is instrumented with Google Analytics 4 to track member engagement and policy query trends.
+
+- **Measurement ID:** `G-YJF8H9VZ3C`
+- **Implementation:** Global Site Tag (`gtag.js`) injected into the `<head>` of `index.html`.
+- **Purpose:** To understand which FAQs are most visited and refine the AI's knowledge base.
+
+### 🛡️ GCloud Session Isolation
+
+To ensure security and prevent cross-project contamination, this repository uses a **strict session isolation** protocol.
+
+- **Mechanism:** `scripts/init-session.ps1`
+- **Behavior:**
+  1.  Reads local configuration from `.env` (gitignored).
+  2.  Sets the `CLOUDSDK_ACTIVE_CONFIG_NAME` environment variable to `asc-faq` for the _current terminal process only_.
+  3.  Ensures `gcloud` commands in this workspace never accidentally affect other GCP projects.
+- **Automation:**
+  - VS Code is configured via `.vscode/tasks.json` to **automatically run this script** when the folder is opened.
+  - Look for the "🔐 ALBURY SKI CLUB: Signing in..." message in your terminal.
+
 ### 📚 Member Knowledge Base
 
 The manual FAQ section is fully operational and serves as the primary source of truth for members. It covers:
