@@ -529,11 +529,14 @@
                 console.log("ASC_DEBUG_URL:", window.location.href);
                 console.log("ASC_DEBUG_REFERRER_HEADER_LIKELY:", window.location.href);
 
-                // Strategy: Try Primary (1.5 Flash on v1 GA), then Fallback
+                // Strategy: Comprehensive Fallback (v1 GA -> v1beta -> Specific Versions)
                 const attempts = [
-                    { model: 'gemini-1.5-flash', version: 'v1' },      // Stable GA
-                    { model: 'gemini-1.5-flash', version: 'v1beta' },  // Beta features
-                    { model: 'gemini-1.0-pro', version: 'v1beta' }     // Legacy Fallback
+                    { model: 'gemini-1.5-flash', version: 'v1' },          // Standard GA
+                    { model: 'gemini-1.5-flash', version: 'v1beta' },      // Beta features
+                    { model: 'gemini-1.5-flash-001', version: 'v1beta' },  // Pinned Version
+                    { model: 'gemini-1.5-flash-002', version: 'v1beta' },  // Newer Pinned Version
+                    { model: 'gemini-1.5-pro', version: 'v1beta' },        // Higher Tier Fallback
+                    { model: 'gemini-1.0-pro', version: 'v1beta' }         // Legacy Fallback
                 ];
 
                 for (const attempt of attempts) {
