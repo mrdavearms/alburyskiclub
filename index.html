@@ -691,7 +691,7 @@
         function formatMarkdown(text) {
             return text
                 .replace(/^# (.*$)/gim, '<h4 class="font-bold text-slate-900 mt-2">$1</h4>')
-                .replace(/^## (.*$)/gim, '<h5 class="font-bold text-slate-900 mt-2">$1</h5>')
+                .replace(/^## (.*$)/gim, '<h5 class="font-bold text-slate-900 mt-2">$1</h4>')
                 .replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-900">$1</strong>')
                 .replace(/\*(.*?)\*/g, '<em>$1</em>')
                 .replace(/\n\n/g, '<div class="h-2"></div>')

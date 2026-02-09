@@ -14,19 +14,17 @@ jobs:
     concurrency: ci-${{ github.ref }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v4
-
-      - name: Inject API Key 💉
-        run: |
-          # Use | as delimiter in case the API key contains slashes
-          sed -i 's|__GEMINI_API_KEY_PLACEHOLDER__|${{ secrets.GEMINI_API_KEY }}|g' index.html
-
-          # Verify the placeholder is gone (without leaking the actual key)
-          if grep -q "__GEMINI_API_KEY_PLACEHOLDER__" index.html; then
-            echo "Critical Error: API Key placeholder was not replaced!"
-            exit 1
-          fi
+      # To restore AI functionality, uncomment the step below and ensure the GEMINI_API_KEY secret is set.
+      # - name: Inject API Key 💉
+      #   run: |
+      #     # Use | as delimiter in case the API key contains slashes
+      #     sed -i 's|__GEMINI_API_KEY_PLACEHOLDER__|${{ secrets.GEMINI_API_KEY }}|g' index.html
+      #
+      #     # Verify the placeholder is gone (without leaking the actual key)
+      #     if grep -q "__GEMINI_API_KEY_PLACEHOLDER__" index.html; then
+      #       echo "Critical Error: API Key placeholder was not replaced!"
+      #       exit 1
+      #     fi
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4

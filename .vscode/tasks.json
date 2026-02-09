@@ -4,13 +4,21 @@
     {
       "label": "GCloud Session Init",
       "type": "shell",
-      "command": "powershell",
-      "args": [
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}/scripts/init-session.ps1"
-      ],
+      "windows": {
+        "command": "powershell",
+        "args": [
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "${workspaceFolder}/scripts/init-session.ps1"
+        ]
+      },
+      "osx": {
+        "command": "source ${workspaceFolder}/scripts/init-session.sh"
+      },
+      "linux": {
+        "command": "source ${workspaceFolder}/scripts/init-session.sh"
+      },
       "presentation": {
         "reveal": "always",
         "panel": "new",
