@@ -529,8 +529,9 @@
                 console.log("ASC_DEBUG_URL:", window.location.href);
                 console.log("ASC_DEBUG_REFERRER_HEADER_LIKELY:", window.location.href);
 
-                // Strategy: User Request (2.0 Flash) -> Fallback (1.5 Flash)
+                // Strategy: User Request (2.5 Flash) -> Fallback (2.0 -> 1.5)
                 const attempts = [
+                    { model: 'gemini-2.5-flash', version: 'v1beta' },     // User Specified
                     { model: 'gemini-2.0-flash-exp', version: 'v1beta' }, // Newest Experimental
                     { model: 'gemini-2.0-flash', version: 'v1beta' },     // Newest Stable?
                     { model: 'gemini-1.5-flash', version: 'v1' },         // Standard GA (Reliable)
