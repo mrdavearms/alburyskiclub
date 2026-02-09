@@ -16,7 +16,7 @@ The "Albury Ski Club Secretary" AI engine is **live and available** to answer me
 
 - **Status:** Operational (Gemini 2.0 Flash).
 - **Architecture:** Client-side RAG interacting with the Google Gemini API.
-- **Resilience:** Locked to `gemini-2.0-flash` for consistent, high-speed performance.
+- **Resilience:** Locked to `gemini-1.5-flash` for maximum stability.
 
 ### 📊 Google Analytics 4 (GA4)
 

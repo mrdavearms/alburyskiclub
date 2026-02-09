@@ -521,9 +521,9 @@
             const cleanKey = API_KEY.trim();
             console.log("ASC_AI_SECRET_STATUS: Key Active (Length: " + cleanKey.length + ")");
 
-            // LOCKED CONFIGURATION: Gemini 2.0 Flash
+            // LOCKED CONFIGURATION: Gemini 1.5 Flash (GA Stability)
             const makeGeminiRequest = async () => {
-                const model = 'gemini-2.0-flash';
+                const model = 'gemini-1.5-flash';
                 const version = 'v1beta';
                 const method = 'streamGenerateContent';
 
@@ -566,7 +566,12 @@
                     return { response, model, version, method };
                 }
 
-                throw new Error(`Connection Failed: ${response.status} ${response.statusText}`);
+                // Capture detailed error info
+                const errorData = await response.json().catch(() => ({}));
+                const errorMessage = errorData.error?.message || response.statusText;
+                console.error("ASC_AI_API_ERROR:", errorData);
+
+                throw new Error(`API Error (${response.status}): ${errorMessage}`);
             };
 
             try {
