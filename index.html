@@ -529,17 +529,17 @@
                 console.log("ASC_DEBUG_URL:", window.location.href);
                 console.log("ASC_DEBUG_REFERRER_HEADER_LIKELY:", window.location.href);
 
-                // Strategy: User Request (2.5 Flash) -> Fallback (2.0 -> 1.5)
+                // Strategy: User Request (2.0 Flash Lite) -> Fallback (2.0 -> 1.5)
                 const attempts = [
-                    { model: 'gemini-2.5-flash', version: 'v1beta' },     // User Specified
-                    { model: 'gemini-2.0-flash-exp', version: 'v1beta' }, // Newest Experimental
-                    { model: 'gemini-2.0-flash', version: 'v1beta' },     // Newest Stable?
-                    { model: 'gemini-1.5-flash', version: 'v1' },         // Standard GA (Reliable)
-                    { model: 'gemini-1.5-flash', version: 'v1beta' },     // Beta features
-                    { model: 'gemini-1.5-flash-001', version: 'v1beta' }, // Pinned Version
-                    { model: 'gemini-1.5-flash-002', version: 'v1beta' }, // Newer Pinned Version
-                    { model: 'gemini-1.5-pro', version: 'v1beta' },       // Higher Tier Fallback
-                    { model: 'gemini-1.0-pro', version: 'v1beta' }        // Legacy Fallback
+                    { model: 'gemini-2.0-flash-lite-001', version: 'v1beta' }, // User Specified
+                    { model: 'gemini-2.0-flash-exp', version: 'v1beta' },      // Newest Experimental
+                    { model: 'gemini-2.0-flash', version: 'v1beta' },          // Newest Stable?
+                    { model: 'gemini-1.5-flash', version: 'v1' },              // Standard GA (Reliable)
+                    { model: 'gemini-1.5-flash', version: 'v1beta' },          // Beta features
+                    { model: 'gemini-1.5-flash-001', version: 'v1beta' },      // Pinned Version
+                    { model: 'gemini-1.5-flash-002', version: 'v1beta' },      // Newer Pinned Version
+                    { model: 'gemini-1.5-pro', version: 'v1beta' },            // Higher Tier Fallback
+                    { model: 'gemini-1.0-pro', version: 'v1beta' }             // Legacy Fallback
                 ];
 
                 for (const attempt of attempts) {
