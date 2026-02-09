@@ -10,14 +10,13 @@ This repository prioritizes **verbose data delivery**. We believe that providing
 
 ## Technical Status
 
-### 🤖 AI Policy Assistant (Maintenance Mode)
+### 🤖 AI Policy Assistant (Active)
 
-The "Albury Ski Club Secretary" AI engine is currently **hidden from public view** in `index.html`.
+The "Albury Ski Club Secretary" AI engine is **live and available** to answer member queries.
 
-- **Status:** Development / Regional Migration.
-- **Why:** Transitioning from Google AI Studio keys to full Google Cloud Platform (GCP) keys to resolve regional provisioning blocks (403/Forbidden errors).
-- **Architecture:** The logic remains in `index.html` featuring a "Waterfall Resilience Engine" that cycles through Gemini 3.0, 2.5, 2.0, and 1.5 models.
-- **To Reactivate:** Remove `style="display: none !important;"` from the `#section-ai` element and update the API key in the GitHub Secrets (`GEMINI_API_KEY`).
+- **Status:** Operational (Gemini 2.0 Flash).
+- **Architecture:** Client-side RAG interacting with the Google Gemini API.
+- **Resilience:** Features a "Waterfall Resilience Engine" that cycles through models to ensure availability.
 
 ### 📊 Google Analytics 4 (GA4)
 
