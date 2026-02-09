@@ -146,8 +146,8 @@
                         <div>
                             <h3 class="text-2xl font-black text-slate-900 tracking-tight">AI Policy Assistant</h3>
                             <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Knowledge Base Online</span>
+                                <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">System Calibration & Testing</span>
                             </div>
                         </div>
                         <button id="ai-stop" onclick="stopAI()" class="hidden ml-auto px-4 py-2 bg-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-50 hover:text-red-600 transition-colors border border-slate-200">
@@ -155,9 +155,9 @@
                         </button>
                     </div>
 
-                    <div id="ai-chat-container" class="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-4 no-scrollbar custom-chat-gradient rounded-3xl p-6 min-h-[100px] border border-slate-50">
-                        <div class="bg-slate-50 self-start px-5 py-4 rounded-2xl rounded-tl-none text-slate-600 text-sm max-w-[85%] leading-relaxed shadow-sm">
-                            Welcome! I've been trained on the club's official policies. How can I help you today?
+                    <div id="ai-chat-container" class="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-4 no-scrollbar custom-chat-gradient rounded-3xl p-6 min-h-[100px] border border-slate-50 opacity-70">
+                        <div class="bg-indigo-50 self-start px-5 py-4 rounded-2xl rounded-tl-none text-indigo-800 text-sm max-w-[85%] leading-relaxed shadow-sm border border-indigo-100">
+                            <strong>Maintenance Note:</strong> The AI Assistant is currently offline for scheduled model upgrades and system calibration. Please check back later.
                         </div>
                     </div>
 
@@ -171,13 +171,13 @@
                         </button>
                     </div>
 
-                    <div class="relative group">
-                        <input type="text" id="ai-input" placeholder="Ask about refunds, memberships, or lodge rules..." 
-                            class="w-full bg-slate-100 border-none rounded-2xl px-6 py-5 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-red-600 focus:bg-white transition-all outline-none pr-32 font-medium shadow-inner">
-                        <button onclick="askAI()" id="ai-submit"
-                            class="absolute right-2 top-2 bottom-2 bg-slate-900 text-white px-6 rounded-xl font-bold text-sm hover:bg-red-600 hover:scale-[1.02] active:scale-95 transition-all shadow-lg flex items-center gap-2">
-                            <span>Ask</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    <div class="relative group opacity-50 cursor-not-allowed">
+                        <input type="text" id="ai-input" disabled placeholder="AI Assistant is currently offline..." 
+                            class="w-full bg-slate-100 border-none rounded-2xl px-6 py-5 text-slate-900 placeholder:text-slate-400 focus:ring-0 transition-all outline-none pr-32 font-medium shadow-inner cursor-not-allowed">
+                        <button disabled id="ai-submit"
+                            class="absolute right-2 top-2 bottom-2 bg-slate-300 text-white px-6 rounded-xl font-bold text-sm cursor-not-allowed flex items-center gap-2">
+                            <span>Offline</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
                         </button>
                     </div>
                     
